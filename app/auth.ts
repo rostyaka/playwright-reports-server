@@ -3,6 +3,7 @@ import { NextAuthConfig } from 'next-auth';
 import { type User } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import jwt from 'jsonwebtoken';
+import AzureADProvider from "next-auth/providers/azure-ad";
 
 const useAuth = !!process.env.API_TOKEN;
 
@@ -16,6 +17,11 @@ const expirationSeconds = expirationHours * 60 * 60;
 export const authConfig: NextAuthConfig = {
   secret,
   providers: [
+    AzureADProvider({
+      clientId: process.env.AZURE_AD_CLIENT_ID,
+      clientSecret: process.env.AZURE_AD_CLIENT_SECRET,
+      tenantId: process.env.AZURE_AD_TENANT_ID,
+    }),
     CredentialsProvider({
       name: 'API Token',
       credentials: {
@@ -36,10 +42,11 @@ export const authConfig: NextAuthConfig = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.apiToken = user.apiToken;
         token.jwtToken = user.jwtToken;
+        token.access_token = account?.access_token;
       }
 
       return token;
@@ -96,4 +103,4 @@ const noAuth = {
   secret,
 } satisfies NextAuthConfig;
 
-export const { handlers, auth, signIn, signOut } = NextAuth(useAuth ? authConfig : noAuth);
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);

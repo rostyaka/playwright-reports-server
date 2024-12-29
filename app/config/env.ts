@@ -2,6 +2,9 @@ import { cleanEnv, str, num } from 'envalid';
 
 export const env = cleanEnv(process.env, {
   API_TOKEN: str({ desc: 'API token for authorization', default: undefined }),
+  AUTH_SECRET: str({ desc: 'Secret for JWT', default: undefined }),
+  AZURE_AD_TENANT_ID: str({ desc: 'Azure AD tenant ID', default: undefined }),
+  AZURE_AD_CLIENT_ID: str({ desc: 'Azure AD client ID', default: undefined }),
   UI_AUTH_EXPIRE_HOURS: str({ desc: 'How much hours are allowed to keep auth session valid', default: '2' }),
   DATA_STORAGE: str({ desc: 'Where to store data', default: 'fs' }),
   S3_ENDPOINT: str({ desc: 'S3 endpoint', default: undefined }),

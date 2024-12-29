@@ -1,89 +1,42 @@
 'use client';
 
-import { type FormEvent, useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button, Card, CardBody, CardFooter, CardHeader, Input, Spinner } from '@nextui-org/react';
-import { getProviders, signIn, useSession } from 'next-auth/react';
-
-import { title } from '@/app/components/primitives';
 
 export default function LoginForm() {
-  const [input, setInput] = useState('');
-  const [error, setError] = useState('');
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const session = useSession();
   const searchParams = useSearchParams();
 
-  const target = searchParams.get('callbackUrl') ?? '/';
-  const callbackUrl = decodeURI(target);
+  // Extract callback URL or fallback to the home page
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   useEffect(() => {
-    // redirect if already authenticated
-    if (session.status === 'authenticated') {
+    if (status === 'authenticated') {
+      // Redirect to the target URL if authenticated
       router.replace(callbackUrl);
     }
+  }, [status, router, callbackUrl]);
 
-    // check if we can sign in automatically
-    getProviders().then((providers) => {
-      // if no api token required we can automatically sign user in
-      if (providers?.credentials.name === 'No Auth') {
-        signIn('credentials', {
-          redirect: false,
-        }).then((response) => {
-          if (!response?.error && response?.ok) {
-            router.replace(callbackUrl);
-          }
-        });
-      }
-    });
-  }, []);
+  if (status === 'loading') {
+    return <p>Loading...</p>;
+  }
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  if (!session) {
+    return (
+      <div>
+        <h1>You are not signed in</h1>
+        <button onClick={() => signIn('azure-ad', { callbackUrl })}>
+          Sign in
+        </button>
+      </div>
+    );
+  }
 
-    const result = await signIn('credentials', {
-      apiToken: input,
-      redirect: false,
-    });
-
-    result?.error ? setError('invalid API key') : router.replace(callbackUrl);
-  };
-
-  return session.status === 'loading' ? (
-    <Spinner />
-  ) : (
-    <div className="grid col-span-6 justify-center">
-      <h1 className={title()}>Login</h1>
-      <Card className="h-screen min-w-[340px] max-h-[250px] p-2 mt-10">
-        <CardHeader className="content-start max-h-14">
-          <p className="text-md">Please provide API key to sign in</p>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardBody className="min-w-full h-24">
-            <Input
-              fullWidth
-              isRequired
-              errorMessage={error}
-              isInvalid={!!error}
-              placeholder="Enter API Key"
-              value={input}
-              onChange={(e) => {
-                const newValue = e.target.value;
-
-                if (!newValue && error) {
-                  setError('');
-                }
-                setInput(newValue);
-              }}
-            />
-          </CardBody>
-          <CardFooter className="mt-5">
-            <Button className="w-full" color="primary" type="submit">
-              Login
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+  return (
+    <div>
+      <h1>Welcome, {session.user.name}!</h1>
     </div>
   );
 }
