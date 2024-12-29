@@ -8,6 +8,8 @@ import jwt from 'jsonwebtoken';
 
 import allowedUsersJSON from '@/app/config/allowed-users.json';
 
+import { isAuthorized } from '@/app/lib/auth';
+
 export const config = {
   matcher: '/api/:path*',
 };
@@ -22,10 +24,11 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: env.AUTH_SECRET! });
 
 
-  const decoded = jwt.decode(token?.access_token);
+  const decoded = jwt.decode(token?.access_token as string);
 
-  const isRecognized = (unique_name: string) => {
-    return allowedUsersJSON.allowedUsers.includes(unique_name);
+  const isRecognizedOrganization = (unique_name: string) => {
+    const domain = unique_name.slice(unique_name.indexOf('@') + 1)
+    return allowedUsersJSON.allowedDomains.includes(domain);
   }
 
   const unprotectedRoutes = ['/api/ping', '/api/auth/', '/api/serve/', '/api/static/'];
@@ -36,8 +39,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const actualAuthToken = request.headers.get('Authorization');
+  const expectedAuthToken = env.API_TOKEN!;
 
-  if (!isRecognized(decoded?.unique_name)) {
+  if (!isAuthorized({ actualAuthToken, expectedAuthToken }) && !isRecognizedOrganization(decoded?.unique_name)) {
     return CommonResponseFactory.buildUnauthorizedResponse();
   }
 }
