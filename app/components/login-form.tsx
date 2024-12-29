@@ -1,42 +1,72 @@
 'use client';
 
-import { useEffect } from 'react';
-import { signIn, useSession } from 'next-auth/react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Button, Card, CardBody, CardFooter, CardHeader, Input, Spinner } from '@nextui-org/react';
+import { getProviders, signIn, useSession } from 'next-auth/react';
+
+import { title } from '@/app/components/primitives';
 
 export default function LoginForm() {
-  const { data: session, status } = useSession();
+  const [input, setInput] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
+  const session = useSession();
   const searchParams = useSearchParams();
 
-  // Extract callback URL or fallback to the home page
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const target = searchParams.get('callbackUrl') ?? '/';
+  const callbackUrl = decodeURI(target);
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      // Redirect to the target URL if authenticated
+    // redirect if already authenticated
+    if (session.status === 'authenticated') {
       router.replace(callbackUrl);
     }
-  }, [status, router, callbackUrl]);
 
-  if (status === 'loading') {
-    return <p>Loading...</p>;
-  }
+    // check if we can sign in automatically
+    getProviders().then((providers) => {
+      // if no api token required we can automatically sign user in
+      if (providers?.credentials.name === 'No Auth') {
+        signIn('credentials', {
+          redirect: false,
+        }).then((response) => {
+          if (!response?.error && response?.ok) {
+            router.replace(callbackUrl);
+          }
+        });
+      }
+    });
+  }, []);
 
-  if (!session) {
-    return (
-      <div>
-        <h1>You are not signed in</h1>
-        <button onClick={() => signIn('azure-ad', { callbackUrl })}>
-          Sign in
-        </button>
-      </div>
-    );
-  }
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  return (
-    <div>
-      <h1>Welcome, {session.user.name}!</h1>
+    const result = await signIn('credentials', {
+      apiToken: input,
+      redirect: false,
+    });
+
+    result?.error ? setError('invalid API key') : router.replace(callbackUrl);
+  };
+
+  return session.status === 'loading' ? (
+    <Spinner />
+  ) : (
+    <div className="grid col-span-6 justify-center">
+      <h1 className={title()}>Login</h1>
+      <Card className="h-screen min-w-[340px] max-h-[250px] p-2 mt-10">
+        <CardHeader className="content-start max-h-14">
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardBody className="min-w-full h-24">
+            <button onClick={() => signIn('azure-ad', { callbackUrl })}>
+              Sign in with Azure AD
+            </button>
+          </CardBody>
+          <CardFooter className="mt-5">
+          </CardFooter>
+        </form>
+      </Card>
     </div>
   );
 }

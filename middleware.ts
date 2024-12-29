@@ -21,7 +21,8 @@ export async function middleware(request: NextRequest) {
 
   const token = await getToken({ req: request, secret: env.AUTH_SECRET! });
 
-  const decoded = jwt.decode(token.access_token);
+
+  const decoded = jwt.decode(token?.access_token);
 
   const isRecognized = (unique_name: string) => {
     return allowedUsersJSON.allowedUsers.includes(unique_name);
