@@ -23,19 +23,6 @@ export default function LoginForm() {
       router.replace(callbackUrl);
     }
 
-    // check if we can sign in automatically
-    getProviders().then((providers) => {
-      // if no api token required we can automatically sign user in
-      if (providers?.credentials.name === 'No Auth') {
-        signIn('credentials', {
-          redirect: false,
-        }).then((response) => {
-          if (!response?.error && response?.ok) {
-            router.replace(callbackUrl);
-          }
-        });
-      }
-    });
   }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
