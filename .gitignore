@@ -39,4 +39,4 @@ yarn-error.log*
 next-env.d.ts
 
 # auth
-/config/allowed-users.json
+app/config/allowed-users.json
