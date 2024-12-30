@@ -17,6 +17,8 @@ import { HeaderLinks } from '@/app/components/header-links';
 import { siteConfig } from '@/app/config/site';
 import { ThemeSwitch } from '@/app/components/theme-switch';
 import { SiteWhiteLabelConfig } from '@/app/types';
+import { Greetings } from '@/app/components/greetings';
+
 interface NavbarProps {
   config: SiteWhiteLabelConfig;
 }
@@ -62,6 +64,7 @@ export const Navbar: React.FC<NavbarProps> = async ({ config }) => {
             </NavbarItem>
           ))}
         </ul>
+        <Greetings />
       </NavbarContent>
 
       <NavbarContent className="hidden sm:flex basis-1/5 sm:basis-full" justify="end">
