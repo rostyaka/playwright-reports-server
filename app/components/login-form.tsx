@@ -23,19 +23,6 @@ export default function LoginForm() {
       router.replace(callbackUrl);
     }
 
-    // check if we can sign in automatically
-    getProviders().then((providers) => {
-      // if no api token required we can automatically sign user in
-      if (providers?.credentials.name === 'No Auth') {
-        signIn('credentials', {
-          redirect: false,
-        }).then((response) => {
-          if (!response?.error && response?.ok) {
-            router.replace(callbackUrl);
-          }
-        });
-      }
-    });
   }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -56,31 +43,14 @@ export default function LoginForm() {
       <h1 className={title()}>Login</h1>
       <Card className="h-screen min-w-[340px] max-h-[250px] p-2 mt-10">
         <CardHeader className="content-start max-h-14">
-          <p className="text-md">Please provide API key to sign in</p>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardBody className="min-w-full h-24">
-            <Input
-              fullWidth
-              isRequired
-              errorMessage={error}
-              isInvalid={!!error}
-              placeholder="Enter API Key"
-              value={input}
-              onChange={(e) => {
-                const newValue = e.target.value;
-
-                if (!newValue && error) {
-                  setError('');
-                }
-                setInput(newValue);
-              }}
-            />
+            <button onClick={() => signIn('azure-ad', { callbackUrl })}>
+              Sign in with Azure AD
+            </button>
           </CardBody>
           <CardFooter className="mt-5">
-            <Button className="w-full" color="primary" type="submit">
-              Login
-            </Button>
           </CardFooter>
         </form>
       </Card>

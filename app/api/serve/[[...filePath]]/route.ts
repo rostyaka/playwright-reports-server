@@ -32,7 +32,7 @@ export async function GET(
 
   const targetPath = decodeURI(uriPath);
 
-  if (!session?.user?.jwtToken) {
+  if (!session?.user) {
     redirect(`/login?callbackUrl=${encodeURI(req.nextUrl.pathname)}`);
   }
 
