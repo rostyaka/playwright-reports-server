@@ -20,6 +20,7 @@ export const authConfig: NextAuthConfig = {
     AzureADProvider({
       clientId: process.env.AZURE_AD_CLIENT_ID,
       clientSecret: process.env.AZURE_AD_CLIENT_SECRET,
+      authorization: { params: { redirect_uri: process.env.AZURE_AD_REDIRECT_URI } },
     }),
     CredentialsProvider({
       name: 'API Token',

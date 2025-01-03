@@ -47,7 +47,7 @@ export default function LoginForm() {
         <form onSubmit={handleSubmit}>
           <CardBody className="min-w-full h-24">
             <button onClick={() => signIn('azure-ad', { callbackUrl })}>
-              Sign in with Azure AD
+              Sign in with Microsoft Account
             </button>
           </CardBody>
           <CardFooter className="mt-5">

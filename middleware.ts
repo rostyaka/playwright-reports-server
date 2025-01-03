@@ -21,10 +21,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = await getToken({ req: request, secret: env.AUTH_SECRET! });
+  const token = await getToken({
+    req: request,
+    secret: env.AUTH_SECRET!,
+    secureCookie: !!env.NEXTAUTH_URL?.includes('https')
+  });
 
+  interface CustomJwtPayload extends jwt.JwtPayload {
+    unique_name: string;
+  }
 
-  const decoded = jwt.decode(token?.access_token as string);
+  const decoded = jwt.decode(token?.access_token as string) as CustomJwtPayload;
 
   const isRecognizedOrganization = (unique_name: string) => {
     const domain = unique_name.slice(unique_name.indexOf('@') + 1)
